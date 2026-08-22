@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Central de Ferramentas</title>
+<style>
+  :root{
+    --bg: #0d2438;
+    --bg-deep: #0a1c2c;
+    --grid-line: rgba(140, 190, 220, 0.08);
+    --panel: #123253;
+    --panel-edge: #1c4269;
+    --ink: #eaf2f8;
+    --ink-dim: #8fa9bf;
+    --accent: #ff7a3d;
+    --accent-dim: rgba(255, 122, 61, 0.18);
+    --ok: #57d38c;
+    --pending: #5c7a94;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+    --grot: 'Space Grotesk', 'Segoe UI', sans-serif;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0/40px 40px,
+      radial-gradient(circle at 15% 0%, #163a5c 0%, var(--bg) 45%),
+      var(--bg-deep);
+    font-family: var(--grot);
+    color: var(--ink);
+    padding: 48px 24px 80px;
+  }
+
+  .wrap{ max-width: 980px; margin: 0 auto; }
+
+  header{ margin-bottom: 44px; }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom: 14px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:8px; height:8px; border-radius:50%;
+    background: var(--ok);
+    box-shadow: 0 0 8px var(--ok);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  h1{
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 700;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  header p{
+    color: var(--ink-dim);
+    font-size: 15px;
+    margin: 0;
+    max-width: 520px;
+    line-height: 1.5;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+  }
+
+  .card{
+    position:relative;
+    background: linear-gradient(160deg, var(--panel), var(--bg-deep));
+    border: 1px solid var(--panel-edge);
+    border-radius: 10px;
+    padding: 22px 22px 20px;
+    display:flex;
+    flex-direction:column;
+    gap: 14px;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .card:hover{
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: 0 10px 30px -12px rgba(255,122,61,0.35);
+  }
+
+  .card-top{
+    display:flex; align-items:flex-start; justify-content:space-between;
+  }
+  .mod-id{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.1em;
+  }
+  .status{
+    display:flex; align-items:center; gap:6px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .dot{ width:7px; height:7px; border-radius:50%; background: var(--pending); flex-shrink:0; }
+  .status.ready .dot{ background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+  .status.ready{ color: var(--ok); }
+
+  .icon{
+    width: 34px; height:34px;
+    color: var(--accent);
+    opacity:.9;
+  }
+
+  .title{
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    line-height:1.25;
+  }
+
+  .actions{
+    margin-top: auto;
+    display:flex;
+    gap: 8px;
+    align-items:center;
+  }
+
+  .open-btn{
+    flex:1;
+    text-align:center;
+    padding: 10px 12px;
+    border-radius: 7px;
+    background: var(--accent);
+    color: #1a1005;
+    font-family: var(--grot);
+    font-weight: 600;
+    font-size: 13.5px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    transition: filter .15s ease;
+  }
+  .open-btn:hover{ filter: brightness(1.08); }
+  .open-btn.disabled{
+    background: transparent;
+    border: 1px dashed var(--panel-edge);
+    color: var(--ink-dim);
+    cursor: not-allowed;
+  }
+
+  .edit-btn{
+    width: 38px; height: 38px;
+    border-radius: 7px;
+    border: 1px solid var(--panel-edge);
+    background: transparent;
+    color: var(--ink-dim);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: border-color .15s ease, color .15s ease;
+    flex-shrink:0;
+  }
+  .edit-btn:hover{ border-color: var(--accent); color: var(--accent); }
+  .edit-btn svg{ width:16px; height:16px; }
+
+  .edit-panel{
+    display:none;
+    flex-direction:column;
+    gap: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--panel-edge);
+    margin-top: 4px;
+  }
+  .edit-panel.open{ display:flex; }
+  .edit-panel label{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-dim);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .edit-panel input{
+    background: var(--bg-deep);
+    border: 1px solid var(--panel-edge);
+    border-radius: 6px;
+    padding: 9px 10px;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    outline:none;
+  }
+  .edit-panel input:focus{ border-color: var(--accent); }
+  .edit-row{ display:flex; gap:8px; margin-top:4px; }
+  .save-btn, .cancel-btn{
+    font-family: var(--grot);
+    font-size: 12.5px;
+    font-weight:600;
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor:pointer;
+    border:none;
+  }
+  .save-btn{ background: var(--ok); color: #06301a; }
+  .cancel-btn{ background: transparent; color: var(--ink-dim); border: 1px solid var(--panel-edge); }
+
+  footer{
+    margin-top: 48px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: .04em;
+    text-align:center;
+  }
+
+  .toast{
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--panel);
+    border: 1px solid var(--accent);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    opacity: 0;
+    pointer-events:none;
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 50;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="eyebrow">PAINEL ATIVO</div>
+      <h1>Central de Ferramentas</h1>
+      <p>Acesso rápido às ferramentas do fluxo. Clique no lápis para configurar o link de cada módulo — fica salvo automaticamente para as próximas vezes.</p>
+    </header>
+
+    <div class="grid" id="grid"></div>
+
+    <footer>4 MÓDULOS · CONFIGURAÇÃO SALVA LOCALMENTE NESTE ARTEFATO</footer>
+  </div>
+
+  <div class="toast" id="toast">Link salvo.</div>
+
+<script>
+const TOOLS = [
+  {
+    id: 'nf',
+    code: 'MOD-01',
+    name: 'Extrator NF',
+    url: 'https://murilo211121.github.io/Recebee-/',
+    icon: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h8l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M15 3v4h4"/><path d="M9 13h6M9 17h4"/></svg>`
+  },
+  {
+    id: 'planilha',
+    code: 'MOD-02',
+    name: 'Extrator Planilha',
+    url: 'https://murilo211121.github.io/Recebe/',
+    icon: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 10h18M9 10v10M15 10v10"/></svg>`
+  },
+  {
+    id: 'recebemais',
+    code: 'MOD-03',
+    name: 'Aplicativo RecebeMais',
+    url: 'https://murilo211121.github.io/Recebee/',
+    icon: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="2.5" width="12" height="19" rx="2"/><path d="M11 18.5h2"/></svg>`
+  },
+  {
+    id: 'erros',
+    code: 'MOD-04',
+    name: 'Erros Reportados',
+    url: 'https://murilo211121.github.io/Recebe01/',
+    icon: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 2.5 18a1.6 1.6 0 0 0 1.4 2.4h16.2a1.6 1.6 0 0 0 1.4-2.4L13.7 3.9a1.6 1.6 0 0 0-2.8 0z"/></svg>`
+  }
+];
+
+const grid = document.getElementById('grid');
+const toastEl = document.getElementById('toast');
+
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(()=> toastEl.classList.remove('show'), 1800);
+}
+
+function render(){
+  grid.innerHTML = '';
+  TOOLS.forEach(tool => {
+    const hasUrl = !!tool.url;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="mod-id">${tool.code}</span>
+        <span class="status ${hasUrl ? 'ready' : ''}">
+          <span class="dot"></span>${hasUrl ? 'configurado' : 'pendente'}
+        </span>
+      </div>
+      ${tool.icon}
+      <h3 class="title">${tool.name}</h3>
+      <div class="actions">
+        ${hasUrl
+          ? `<a class="open-btn" href="${tool.url}" target="_blank" rel="noopener">Abrir</a>`
+          : `<button class="open-btn disabled" disabled>Sem link ainda</button>`
+        }
+        <button class="edit-btn" data-id="${tool.id}" title="Configurar link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+      </div>
+      <div class="edit-panel" id="edit-${tool.id}">
+        <label>URL ou caminho do arquivo</label>
+        <input type="text" id="input-${tool.id}" placeholder="https://..." value="${tool.url || ''}">
+        <div class="edit-row">
+          <button class="save-btn" data-id="${tool.id}">Salvar</button>
+          <button class="cancel-btn" data-id="${tool.id}">Cancelar</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  document.querySelectorAll('.edit-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const panel = document.getElementById('edit-' + btn.dataset.id);
+      panel.classList.toggle('open');
+    });
+  });
+  document.querySelectorAll('.cancel-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.getElementById('edit-' + btn.dataset.id).classList.remove('open');
+    });
+  });
+  document.querySelectorAll('.save-btn').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.id;
+      const val = document.getElementById('input-' + id).value.trim();
+      const tool = TOOLS.find(t => t.id === id);
+      tool.url = val;
+      await persist();
+      render();
+      showToast(val ? 'Link salvo com sucesso.' : 'Link removido.');
+    });
+  });
+}
+
+async function persist(){
+  try{
+    const data = {};
+    TOOLS.forEach(t => data[t.id] = t.url);
+    await window.storage.set('central-ferramentas-links', JSON.stringify(data), false);
+  }catch(e){
+    console.error('Erro ao salvar:', e);
+    showToast('Não foi possível salvar. Tente novamente.');
+  }
+}
+
+async function load(){
+  try{
+    const result = await window.storage.get('central-ferramentas-links', false);
+    if(result && result.value){
+      const data = JSON.parse(result.value);
+      TOOLS.forEach(t => { if(data[t.id]) t.url = data[t.id]; });
+    }
+  }catch(e){
+    // sem dados salvos ainda, tudo bem
+  }
+  render();
+}
+
+load();
+</script>
+</body>
+</html>
